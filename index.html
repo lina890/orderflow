@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>اطلبي الآن</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--pink:#d9768f;--pink-d:#c05d77;--pink-l:#fbe9ee;--cream:#fbf6ef;--ink:#3b2f33;--mute:#8a7a7e;--line:#f0e4e0}
+*{box-sizing:border-box;margin:0}
+body{font-family:'Tajawal',Tahoma,Arial,sans-serif;background:var(--cream);color:var(--ink);line-height:1.6}
+.wrap{max-width:520px;margin:0 auto;padding:18px}
+h1{font-size:22px;color:var(--pink-d);margin:8px 0 4px}
+.sub{color:var(--mute);font-size:14px;margin-bottom:14px}
+.card{background:#fff;border-radius:18px;box-shadow:0 2px 10px rgba(120,70,80,.07);padding:18px}
+label{display:block;font-size:13px;color:var(--mute);margin:12px 0 4px}
+input,textarea{width:100%;font:inherit;padding:12px;border:1px solid var(--line);border-radius:12px;background:#fff;color:var(--ink)}
+input:focus,textarea:focus{outline:2px solid var(--pink-l);border-color:var(--pink)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+button{width:100%;margin-top:18px;border:0;border-radius:14px;padding:14px;font:inherit;font-weight:700;font-size:16px;background:var(--pink);color:#fff;cursor:pointer}
+button:disabled{opacity:.6}
+.ok{text-align:center;padding:30px 10px}.ok b{font-size:20px;color:var(--pink-d)}
+.err{color:#cf4a4a;font-size:13px;margin-top:10px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 id="store">🌸 اطلبي الآن</h1>
+  <p class="sub">املئي المعلومات وسنتصل بك لتأكيد الطلب.</p>
+  <div class="card" id="box">
+    <form id="f">
+      <label>الاسم الكامل *</label><input name="name" required maxlength="100">
+      <label>رقم الهاتف *</label><input name="phone" required inputmode="tel" maxlength="20">
+      <label>الولاية *</label><input name="wilaya" required list="wl" maxlength="50"><datalist id="wl"></datalist>
+      <label>العنوان</label><input name="address" maxlength="200">
+      <div class="two">
+        <div><label>المنتج *</label><input name="product" required maxlength="100"></div>
+        <div><label>الكمية *</label><input name="qty" type="number" min="1" max="100" value="1" required></div>
+      </div>
+      <label>ملاحظات</label><textarea name="notes" rows="2" maxlength="300"></textarea>
+      <div class="err" id="err"></div>
+      <button id="btn" type="submit">تأكيد الطلب</button>
+    </form>
+  </div>
+</div>
+<script type="module">
+import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {getFirestore, collection, doc, setDoc} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDeraZUAeX2nqTrzGBxU5NQEioyQ4vx38Y",
+  authDomain: "rderflow-ba3af.firebaseapp.com",
+  projectId: "rderflow-ba3af",
+  storageBucket: "rderflow-ba3af.firebasestorage.app",
+  messagingSenderId: "520695536117",
+  appId: "1:520695536117:web:a848469f6013c21d6ca8bc"
+};
+const db = getFirestore(initializeApp(firebaseConfig));
+
+// غيّري اسم متجرك هنا
+document.getElementById('store').textContent = '🌸 اطلبي الآن';
+'الجزائر,وهران,قسنطينة,عنابة,سطيف,البليدة,باتنة,بجاية,تيزي وزو,تلمسان,بسكرة,ورقلة,مستغانم,الشلف,جيجل,سكيكدة,المسيلة,غرداية,بومرداس,تيبازة'
+  .split(',').forEach(w => wl.insertAdjacentHTML('beforeend', `<option value="${w}">`));
+
+f.addEventListener('submit', async e => {
+  e.preventDefault();
+  const fd = new FormData(f), g = k => (fd.get(k) || '').toString().trim();
+  btn.disabled = true; err.textContent = '';
+  const data = {name: g('name'), phone: g('phone'), wilaya: g('wilaya'), address: g('address'),
+    product: g('product'), qty: Math.min(100, Math.max(1, parseInt(g('qty')) || 1)),
+    price: 0, delivery: 0, cost: 0, notes: g('notes'), status: 'pending', date: new Date().toISOString()};
+  try {
+    await setDoc(doc(collection(db, 'orders')), data);
+    box.innerHTML = '<div class="ok"><b>تم استلام طلبك ✅</b><p class="sub" style="margin-top:8px">شكراً لك! سنتصل بك قريباً لتأكيد الطلب.</p></div>';
+  } catch (x) {
+    err.textContent = 'حدث خطأ، تأكدي من الاتصال وحاولي مرة أخرى.';
+    btn.disabled = false;
+  }
+});
+</script>
+</body>
+</html>
